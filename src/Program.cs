@@ -5,45 +5,42 @@ namespace Ghosts.Client.Infrastructure
 {
     public class WmiSupport
     {
-        public class WmiSupport
+        private readonly string _computerName;
+        private readonly string _username;
+        private readonly string _password;
+
+        public WmiSupport(string computerName, string username, string password)
         {
-            private readonly string _computerName;
-            private readonly string _username;
-            private readonly string _password;
+            _computerName = computerName;
+            _username = username;
+            _password = password;
+        }
 
-            public WmiSupport(string computerName, string username, string password)
-            {
-                _computerName = computerName;
-                _username = username;
-                _password = password;
-            }
+        public void Connect()
+        {
+            // create a connection options object with the target machine's name
+            var options = new CimSessionOptions { ComputerName = _computerName };
 
-            public void Connect()
-            {
-                // create a connection options object with the target machine's name
-                var options = new CimSessionOptions { ComputerName = _computerName };
+            // create a CimCredential object with the username and password
+            var credentials = new CimCredential(_username, _password);
 
-                // create a CimCredential object with the username and password
-                var credentials = new CimCredential(_username, _password);
+            // add the credentials to the CimSessionOptions object
+            options.AddCredential(credentials);
 
-                // add the credentials to the CimSessionOptions object
-                options.AddCredential(credentials);
+            // create a CimSession with the options object
+            var session = CimSession.Create(options);
 
-                // create a CimSession with the options object
-                var session = CimSession.Create(options);
+            var operatingSystemOutput = new OperatingSystemOutput(session);
+            operatingSystemOutput.Print();
 
-                var operatingSystemOutput = new OperatingSystemOutput(session);
-                operatingSystemOutput.Print();
+            var biosOutput = new BiosOutput(session);
+            biosOutput.Print();
 
-                var biosOutput = new BiosOutput(session);
-                biosOutput.Print();
+            var processorOutput = new ProcessorOutput(session);
+            processorOutput.Print();
 
-                var processorOutput = new ProcessorOutput(session);
-                processorOutput.Print();
-
-                var filesOutput = new FilesOutput(session);
-                filesOutput.Print();
-            }
+            var filesOutput = new FilesOutput(session);
+            filesOutput.Print();
         }
     }
 

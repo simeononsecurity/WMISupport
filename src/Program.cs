@@ -1,5 +1,7 @@
 ﻿using System;
 using Microsoft.Management.Infrastructure;
+using Microsoft.Management.Infrastructure.CimSessionOptions;
+using Microsoft.Management.Infrastructure.CimCredential;
 
 namespace Ghosts.Client.Infrastructure
 {
@@ -70,7 +72,8 @@ namespace Ghosts.Client.Infrastructure
         {
             // use the CimSession to create a CimInstance object representing a WMI instance
             // in this case, we're using the Win32_OperatingSystem class to get information about the operating system
-            var instance = _session.GetInstance(@"root\cimv2", "Win32_OperatingSystem");
+            var cimInstance = new CimInstance(@"Win32_OperatingSystem");
+            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
             // print out the instance's properties
             Console.WriteLine(
@@ -101,7 +104,8 @@ namespace Ghosts.Client.Infrastructure
         {
             // use the CimSession to create a CimInstance object representing a WMI instance
             // in this case, we're using the Win32_BIOS class to get information about the BIOS
-            var instance = _session.GetInstance(@"root\cimv2", "Win32_BIOS");
+            var cimInstance = new CimInstance(@"Win32_BIOS");
+            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
             // print out the instance's properties
             Console.WriteLine(
@@ -129,7 +133,8 @@ namespace Ghosts.Client.Infrastructure
         {
             // use the CimSession to create a CimInstance object representing a WMI instance
             // in this case, we're using the Win32_Processor class to get information about the processor
-            var instance = _session.GetInstance(@"root\cimv2", "Win32_Processor");
+            var cimInstance = new CimInstance(@"Win32_Processor");
+            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
             // print out the instance's properties
             Console.WriteLine("Processor Name: {0}", instance.CimInstanceProperties["Name"].Value);
@@ -165,7 +170,8 @@ namespace Ghosts.Client.Infrastructure
         {
             // use the CimSession to create a CimInstance object representing a WMI instance
             // in this case, we're using the Win32_Directory class to get information about a directory
-            var instance = _session.GetInstance(@"root\cimv2", "Win32_Directory");
+            var cimInstance = new CimInstance(@"Win32_Directory");
+            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
             // print out the instance's properties
             Console.WriteLine("Directory Name: {0}", instance.CimInstanceProperties["Name"].Value);

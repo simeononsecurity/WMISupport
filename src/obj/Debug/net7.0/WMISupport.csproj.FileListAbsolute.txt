@@ -1,0 +1,5 @@
+C:\Users\Simeon\Documents\GitHub\WMISupport\src\obj\Debug\net7.0\WMISupport.csproj.AssemblyReference.cache
+C:\Users\Simeon\Documents\GitHub\WMISupport\src\obj\Debug\net7.0\WMISupport.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Simeon\Documents\GitHub\WMISupport\src\obj\Debug\net7.0\WMISupport.AssemblyInfoInputs.cache
+C:\Users\Simeon\Documents\GitHub\WMISupport\src\obj\Debug\net7.0\WMISupport.AssemblyInfo.cs
+C:\Users\Simeon\Documents\GitHub\WMISupport\src\obj\Debug\net7.0\WMISupport.csproj.CoreCompileInputs.cache

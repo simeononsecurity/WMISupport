@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "hBE7qHjDwhuKXpUEMdnHPdPp1KgOx+hqOSPFV7kk8ImOVnwqJYyq/wjblnC5unbrKvlqjNZ6RSmd8ZQ+dAZfdw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Simeon\\Documents\\GitHub\\WMISupport\\src\\WMISupport.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Simeon\\.nuget\\packages\\microsoft.management.infrastructure\\2.0.0\\microsoft.management.infrastructure.2.0.0.nupkg.sha512",
+    "C:\\Users\\Simeon\\.nuget\\packages\\microsoft.management.infrastructure.runtime.unix\\2.0.0\\microsoft.management.infrastructure.runtime.unix.2.0.0.nupkg.sha512",
+    "C:\\Users\\Simeon\\.nuget\\packages\\microsoft.management.infrastructure.runtime.win\\2.0.0\\microsoft.management.infrastructure.runtime.win.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

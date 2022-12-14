@@ -62,7 +62,7 @@ namespace Ghosts.Client.Infrastructure
 
                     // // create a CimSession with the target machine's name
                     // var session = CimSession.Create(_computerName, options);
-                    if (session.TestConnection() == true)
+                    if (session.TestConnection())
                     {
                         Console.WriteLine($"Connection Test Was Successful. Continuing...");
                     }
@@ -95,6 +95,15 @@ namespace Ghosts.Client.Infrastructure
 
                         var filesOutput = new FilesOutput(session);
                         filesOutput.Print();
+
+                        var userlistOutput = new UserListOutput(session);
+                        userlistOutput.Print();
+
+                        var networkinfoOutput = new NetworkInfoOutput(session);
+                        networkinfoOutput.Print();
+
+                        var processlistOutput = new ProcessListOutput(session);
+                        processlistOutput.Print();
                     }
                 }
                 catch (CimException ex)
@@ -187,7 +196,7 @@ namespace Ghosts.Client.Infrastructure
             {
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
-                    "An error occurred while querying the remote computer: {0}",
+                    "Failed on OperatingSystemOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }
@@ -230,7 +239,7 @@ namespace Ghosts.Client.Infrastructure
             {
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
-                    "An error occurred while querying the remote computer: {0}",
+                    "Failed on BiosOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }
@@ -281,7 +290,7 @@ namespace Ghosts.Client.Infrastructure
             {
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
-                    "An error occurred while querying the remote computer: {0}",
+                    "Failed on ProcessorOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }
@@ -324,7 +333,133 @@ namespace Ghosts.Client.Infrastructure
             {
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
-                    "An error occurred while querying the remote computer: {0}",
+                    "Failed on FilesOutput: An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
+        }
+    }
+
+    public class UserListOutput
+    {
+        private readonly CimSession _session;
+
+        public UserListOutput(CimSession session)
+        {
+            _session = session;
+        }
+
+        public void Print()
+        {
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_UserAccount class to get information about users on the system
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_UserAccount");
+
+                // print out the list of users on the system
+                Console.WriteLine("List of users on the system:");
+                foreach (var instance in instances)
+                {
+                    Console.WriteLine(
+                        "User Name: {0}",
+                        instance.CimInstanceProperties["Name"].Value
+                    );
+                }
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "Failed on UserListOutput: An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
+        }
+    }
+
+    public class NetworkInfoOutput
+    {
+        private readonly CimSession _session;
+
+        public NetworkInfoOutput(CimSession session)
+        {
+            _session = session;
+        }
+
+        public void Print()
+        {
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_NetworkAdapter class to get information about network devices on the system
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_NetworkAdapter");
+
+                // print out the network information for each network device
+                Console.WriteLine("Network information for each network device:");
+                foreach (var instance in instances)
+                {
+                    Console.WriteLine(
+                        "Network Device: {0}",
+                        instance.CimInstanceProperties["Name"].Value
+                    );
+                    Console.WriteLine(
+                        "MAC Address: {0}",
+                        instance.CimInstanceProperties["MACAddress"].Value
+                    );
+                    Console.WriteLine(
+                        "IP Address: {0}",
+                        instance.CimInstanceProperties["IPAddress"].Value
+                    );
+                }
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "Failed on NetworkListOutput: An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
+        }
+    }
+
+    public class ProcessListOutput
+    {
+        private readonly CimSession _session;
+
+        public ProcessListOutput(CimSession session)
+        {
+            _session = session;
+        }
+
+        public void Print()
+        {
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_Process class to get information about processes running on the system
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_Process");
+
+                // print out the list of processes
+                Console.WriteLine("List of processes running on the system:");
+                foreach (var instance in instances)
+                {
+                    Console.WriteLine(
+                        "Process Name: {0}",
+                        instance.CimInstanceProperties["Name"].Value
+                    );
+                    Console.WriteLine(
+                        "Process ID: {0}",
+                        instance.CimInstanceProperties["ProcessId"].Value
+                    );
+                }
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "Failed on ProcessListOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }

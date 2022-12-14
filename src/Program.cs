@@ -1,36 +1,63 @@
-﻿using System;
-using Microsoft.Management.Infrastructure;
-using Microsoft.Management.Infrastructure.CimSessionOptions;
-using Microsoft.Management.Infrastructure.CimCredential;
+﻿using Microsoft.Management.Infrastructure;
+using Microsoft.Management.Infrastructure.Options;
+using System.Security;
 
 namespace Ghosts.Client.Infrastructure
 {
     public class WmiSupport
     {
+        // declare the CimSession as a field of the WmiSupport class
+        private CimSession session;
         private readonly string _computerName;
+        private readonly string _domain;
         private readonly string _username;
         private readonly string _password;
+        private readonly SecureString _securepassword;
 
-        public WmiSupport(string computerName, string username, string password)
+        public WmiSupport(string computerName, string domain, string username, string password)
         {
             _computerName = computerName;
+            _domain = domain;
             _username = username;
             _password = password;
+            _securepassword = new SecureString();
+            foreach (char c in _password)
+            {
+                _securepassword.AppendChar(c);
+            }
         }
 
         public void Connect()
         {
-            // create a connection options object with the target machine's name
-            var options = new CimSessionOptions { ComputerName = _computerName };
+            // create Credentials
+            CimCredential Credentials = new CimCredential(
+                PasswordAuthenticationMechanism.Default,
+                _domain,
+                _username,
+                _securepassword
+            );
 
-            // create a CimCredential object with the username and password
-            var credentials = new CimCredential(_username, _password);
+            // create SessionOptions using Credentials
+            WSManSessionOptions SessionOptions = new WSManSessionOptions();
+            SessionOptions.AddDestinationCredentials(Credentials);
 
-            // add the credentials to the CimSessionOptions object
-            options.AddCredential(credentials);
+            // create Session using computer, SessionOptions
+            // use the field declared above to store the CimSession in the WmiSupport object
+            session = CimSession.Create(_computerName, SessionOptions);
 
-            // create a CimSession with the options object
-            var session = CimSession.Create(options);
+            // // create a connection options object with the target machine's name
+            // var options = new CimSessionOptions { Host = _computerName };
+
+            // // create a CimCredential object with the username and password
+            // var credentials = new CimCredential(_username, _password);
+
+            // // add the credentials to the CimSessionOptions object
+            // options.AddCredential(credentials);
+
+            // // create a CimSession with the target machine's name
+            // var session = CimSession.Create(_computerName, options);
+
+            // output
 
             var operatingSystemOutput = new OperatingSystemOutput(session);
             operatingSystemOutput.Print();

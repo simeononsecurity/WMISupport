@@ -79,9 +79,20 @@ namespace Ghosts.Client.Infrastructure
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("Enter the computer name: ");
+            var computerName = Console.ReadLine();
+
+            Console.WriteLine("Enter the domain: ");
+            var domain = Console.ReadLine();
+
+            Console.WriteLine("Enter the username: ");
+            var username = Console.ReadLine();
+
+            Console.WriteLine("Enter the password: ");
+            var password = Console.ReadLine();
+
             // create a WmiSupport object with the computer name, username, and password
-            // you can pass these values as arguments to the Main method or hard-code them here
-            var wmiSupport = new WmiSupport("<computer-name>", "<domain>", "<username>", "<password>");
+            var wmiSupport = new WmiSupport(computerName, domain, username, password);
 
             // connect to the target computer and print out the information
             wmiSupport.Connect();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Management.Infrastructure;
+﻿using System;
+using Microsoft.Management.Infrastructure;
 using Microsoft.Management.Infrastructure.Options;
 using System.Security;
 
@@ -7,7 +8,7 @@ namespace Ghosts.Client.Infrastructure
     public class WmiSupport
     {
         // declare the CimSession as a field of the WmiSupport class
-        private CimSession session;
+        private CimSession? session = null;
         private readonly string _computerName;
         private readonly string _domain;
         private readonly string _username;
@@ -25,6 +26,7 @@ namespace Ghosts.Client.Infrastructure
             {
                 _securepassword.AppendChar(c);
             }
+            // session = new CimSession();
         }
 
         public void Connect()
@@ -79,7 +81,7 @@ namespace Ghosts.Client.Infrastructure
         {
             // create a WmiSupport object with the computer name, username, and password
             // you can pass these values as arguments to the Main method or hard-code them here
-            var wmiSupport = new WmiSupport("<computer-name>", "<username>", "<password>");
+            var wmiSupport = new WmiSupport("<computer-name>", "<domain>", "<username>", "<password>");
 
             // connect to the target computer and print out the information
             wmiSupport.Connect();

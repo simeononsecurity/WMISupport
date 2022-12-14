@@ -51,17 +51,6 @@ namespace Ghosts.Client.Infrastructure
                     // use the field declared above to store the CimSession in the WmiSupport object
                     session = CimSession.Create(_computerName, SessionOptions);
 
-                    // // create a connection options object with the target machine's name
-                    // var options = new CimSessionOptions { Host = _computerName };
-
-                    // // create a CimCredential object with the username and password
-                    // var credentials = new CimCredential(_username, _password);
-
-                    // // add the credentials to the CimSessionOptions object
-                    // options.AddCredential(credentials);
-
-                    // // create a CimSession with the target machine's name
-                    // var session = CimSession.Create(_computerName, options);
                     if (session.TestConnection())
                     {
                         Console.WriteLine($"Connection Test Was Successful. Continuing...");
@@ -93,17 +82,22 @@ namespace Ghosts.Client.Infrastructure
                         var processorOutput = new ProcessorOutput(session);
                         processorOutput.Print();
 
-                        var filesOutput = new FilesOutput(session);
-                        filesOutput.Print();
-
                         var userlistOutput = new UserListOutput(session);
                         userlistOutput.Print();
 
                         var networkinfoOutput = new NetworkInfoOutput(session);
                         networkinfoOutput.Print();
 
-                        var processlistOutput = new ProcessListOutput(session);
-                        processlistOutput.Print();
+                        // produces a lot of output use sparingly
+                        // var filesOutput = new FilesOutput(session);
+                        // filesOutput.Print();
+
+                        // produces a lot of output use sparingly
+                        // var processlistOutput = new ProcessListOutput(session);
+                        // processlistOutput.Print();
+
+                        // troubleshoot locally on system using powershell with:
+                        // (Get-CimInstance -ClassName Win32_Directory -Property *).CimInstanceProperties
                     }
                 }
                 catch (CimException ex)
@@ -179,18 +173,27 @@ namespace Ghosts.Client.Infrastructure
                 var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
                 // print out the instance's properties
-                Console.WriteLine(
-                    "Operating System Name: {0}",
-                    instance.CimInstanceProperties["Name"].Value
-                );
-                Console.WriteLine(
-                    "Operating System Version: {0}",
-                    instance.CimInstanceProperties["Version"].Value
-                );
-                Console.WriteLine(
-                    "Operating System Install Date: {0}",
-                    instance.CimInstanceProperties["InstallDate"].Value
-                );
+                if (null != instance.CimInstanceProperties["Name"].Value)
+                {
+                    Console.WriteLine(
+                        "Operating System Name: {0}",
+                        instance.CimInstanceProperties["Name"].Value
+                    );
+                }
+                if (null != instance.CimInstanceProperties["Version"].Value)
+                {
+                    Console.WriteLine(
+                        "Operating System Version: {0}",
+                        instance.CimInstanceProperties["Version"].Value
+                    );
+                }
+                if (null != instance.CimInstanceProperties["InstallDate"].Value)
+                {
+                    Console.WriteLine(
+                        "Operating System Install Date: {0}",
+                        instance.CimInstanceProperties["InstallDate"].Value
+                    );
+                }
             }
             catch (CimException ex)
             {
@@ -218,22 +221,19 @@ namespace Ghosts.Client.Infrastructure
             {
                 // use the CimSession to create a CimInstance object representing a WMI instance
                 // in this case, we're using the Win32_BIOS class to get information about the BIOS
-                var cimInstance = new CimInstance(@"Win32_BIOS");
-                var instance = _session.GetInstance(@"root\cimv2", cimInstance);
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_BIOS");
 
                 // print out the instance's properties
-                Console.WriteLine(
-                    "BIOS Manufacturer: {0}",
-                    instance.CimInstanceProperties["Manufacturer"].Value
-                );
-                Console.WriteLine(
-                    "BIOS Version: {0}",
-                    instance.CimInstanceProperties["Version"].Value
-                );
-                Console.WriteLine(
-                    "BIOS Release Date: {0}",
-                    instance.CimInstanceProperties["ReleaseDate"].Value
-                );
+                foreach (var instance in instances)
+                {
+                    if (null != instance.CimInstanceProperties["Version"].Value)
+                    {
+                        Console.WriteLine(
+                            "BIOS Version: {0}",
+                            instance.CimInstanceProperties["Version"].Value
+                        );
+                    }
+                }
             }
             catch (CimException ex)
             {
@@ -261,79 +261,32 @@ namespace Ghosts.Client.Infrastructure
             {
                 // use the CimSession to create a CimInstance object representing a WMI instance
                 // in this case, we're using the Win32_Processor class to get information about the processor
-                var cimInstance = new CimInstance(@"Win32_Processor");
-                var instance = _session.GetInstance(@"root\cimv2", cimInstance);
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_Processor");
 
                 // print out the instance's properties
-                Console.WriteLine(
-                    "Processor Name: {0}",
-                    instance.CimInstanceProperties["Name"].Value
-                );
-                Console.WriteLine(
-                    "Processor Manufacturer: {0}",
-                    instance.CimInstanceProperties["Manufacturer"].Value
-                );
-                Console.WriteLine(
-                    "Processor Speed: {0}",
-                    instance.CimInstanceProperties["MaxClockSpeed"].Value
-                );
-                Console.WriteLine(
-                    "Processor Number of Cores: {0}",
-                    instance.CimInstanceProperties["NumberOfCores"].Value
-                );
-                Console.WriteLine(
-                    "Processor Number of Logical Processors: {0}",
-                    instance.CimInstanceProperties["NumberOfLogicalProcessors"].Value
-                );
+                foreach (var instance in instances)
+                {
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            "Processor Name: {0}",
+                            instance.CimInstanceProperties["Name"].Value
+                        );
+                    }
+                    if (null != instance.CimInstanceProperties["Manufacturer"].Value)
+                    {
+                        Console.WriteLine(
+                            "Processor Manufacturer: {0}",
+                            instance.CimInstanceProperties["Manufacturer"].Value
+                        );
+                    }
+                }
             }
             catch (CimException ex)
             {
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
                     "Failed on ProcessorOutput: An error occurred while querying the remote computer: {0}",
-                    ex.Message
-                );
-            }
-        }
-    }
-
-    public class FilesOutput
-    {
-        private readonly CimSession _session;
-
-        public FilesOutput(CimSession session)
-        {
-            _session = session;
-        }
-
-        public void Print()
-        {
-            try
-            {
-                // use the CimSession to create a CimInstance object representing a WMI instance
-                // in this case, we're using the Win32_Directory class to get information about a directory
-                var cimInstance = new CimInstance(@"Win32_Directory");
-                var instance = _session.GetInstance(@"root\cimv2", cimInstance);
-
-                // print out the instance's properties
-                Console.WriteLine(
-                    "Directory Name: {0}",
-                    instance.CimInstanceProperties["Name"].Value
-                );
-                Console.WriteLine(
-                    "Directory AccessMask: {0}",
-                    instance.CimInstanceProperties["AccessMask"].Value
-                );
-                Console.WriteLine(
-                    "Directory Compressed: {0}",
-                    instance.CimInstanceProperties["Compressed"].Value
-                );
-            }
-            catch (CimException ex)
-            {
-                // handle any errors that occur when querying the remote computer
-                Console.WriteLine(
-                    "Failed on FilesOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }
@@ -361,10 +314,13 @@ namespace Ghosts.Client.Infrastructure
                 Console.WriteLine("List of users on the system:");
                 foreach (var instance in instances)
                 {
-                    Console.WriteLine(
-                        "User Name: {0}",
-                        instance.CimInstanceProperties["Name"].Value
-                    );
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            " - User Name: {0}",
+                            instance.CimInstanceProperties["Name"].Value
+                        );
+                    }
                 }
             }
             catch (CimException ex)
@@ -399,18 +355,27 @@ namespace Ghosts.Client.Infrastructure
                 Console.WriteLine("Network information for each network device:");
                 foreach (var instance in instances)
                 {
-                    Console.WriteLine(
-                        "Network Device: {0}",
-                        instance.CimInstanceProperties["Name"].Value
-                    );
-                    Console.WriteLine(
-                        "MAC Address: {0}",
-                        instance.CimInstanceProperties["MACAddress"].Value
-                    );
-                    Console.WriteLine(
-                        "IP Address: {0}",
-                        instance.CimInstanceProperties["IPAddress"].Value
-                    );
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            "Network Device: {0}",
+                            instance.CimInstanceProperties["Name"].Value
+                        );
+                    }
+                    if (null != instance.CimInstanceProperties["MACAddress"].Value)
+                    {
+                        Console.WriteLine(
+                            " - MAC Address: {0}",
+                            instance.CimInstanceProperties["MACAddress"].Value
+                        );
+                    }
+                    if (null != instance.CimInstanceProperties["NetworkAddresses"].Value)
+                    {
+                        Console.WriteLine(
+                            " - IP Address: {0}",
+                            instance.CimInstanceProperties["NetworkAddresses"].Value
+                        );
+                    }
                 }
             }
             catch (CimException ex)
@@ -418,6 +383,47 @@ namespace Ghosts.Client.Infrastructure
                 // handle any errors that occur when querying the remote computer
                 Console.WriteLine(
                     "Failed on NetworkListOutput: An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
+        }
+    }
+
+    public class FilesOutput
+    {
+        private readonly CimSession _session;
+
+        public FilesOutput(CimSession session)
+        {
+            _session = session;
+        }
+
+        public void Print()
+        {
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_Directory class to get information about a directory
+                var instances = _session.EnumerateInstances(@"root\cimv2", "Win32_Directory");
+
+                // print out the list of users on the system
+                Console.WriteLine("List of directories on the system:");
+                foreach (var instance in instances)
+                {
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            " - Directory Name: {0}",
+                            instance.CimInstanceProperties["Name"].Value
+                        );
+                    }
+                }
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "Failed on FilesOutput: An error occurred while querying the remote computer: {0}",
                     ex.Message
                 );
             }
@@ -445,14 +451,20 @@ namespace Ghosts.Client.Infrastructure
                 Console.WriteLine("List of processes running on the system:");
                 foreach (var instance in instances)
                 {
-                    Console.WriteLine(
-                        "Process Name: {0}",
-                        instance.CimInstanceProperties["Name"].Value
-                    );
-                    Console.WriteLine(
-                        "Process ID: {0}",
-                        instance.CimInstanceProperties["ProcessId"].Value
-                    );
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            " - Process Name: {0}",
+                            instance.CimInstanceProperties["Name"].Value
+                        );
+                    }
+                    if (null != instance.CimInstanceProperties["Name"].Value)
+                    {
+                        Console.WriteLine(
+                            " - Process ID: {0}",
+                            instance.CimInstanceProperties["ProcessId"].Value
+                        );
+                    }
                 }
             }
             catch (CimException ex)

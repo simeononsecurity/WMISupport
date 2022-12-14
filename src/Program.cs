@@ -31,56 +31,88 @@ namespace Ghosts.Client.Infrastructure
 
         public void Connect()
         {
-            // create Credentials
-            CimCredential Credentials = new CimCredential(
-                PasswordAuthenticationMechanism.Default,
-                _domain,
-                _username,
-                _securepassword
-            );
-
-            // create SessionOptions using Credentials
-            WSManSessionOptions SessionOptions = new WSManSessionOptions();
-            SessionOptions.AddDestinationCredentials(Credentials);
-
-            // create Session using computer, SessionOptions
-            // use the field declared above to store the CimSession in the WmiSupport object
-            session = CimSession.Create(_computerName, SessionOptions);
-
-            // // create a connection options object with the target machine's name
-            // var options = new CimSessionOptions { Host = _computerName };
-
-            // // create a CimCredential object with the username and password
-            // var credentials = new CimCredential(_username, _password);
-
-            // // add the credentials to the CimSessionOptions object
-            // options.AddCredential(credentials);
-
-            // // create a CimSession with the target machine's name
-            // var session = CimSession.Create(_computerName, options);
-
-            // output
-
-            if (session.TestConnection() == true)
+            try
             {
-                Console.WriteLine($"Connection Test Was Successful. Continuing...");
+                try
+                {
+                    // create Credentials
+                    CimCredential Credentials = new CimCredential(
+                        PasswordAuthenticationMechanism.Default,
+                        _domain,
+                        _username,
+                        _securepassword
+                    );
+
+                    // create SessionOptions using Credentials
+                    WSManSessionOptions SessionOptions = new WSManSessionOptions();
+                    SessionOptions.AddDestinationCredentials(Credentials);
+
+                    // create Session using computer, SessionOptions
+                    // use the field declared above to store the CimSession in the WmiSupport object
+                    session = CimSession.Create(_computerName, SessionOptions);
+
+                    // // create a connection options object with the target machine's name
+                    // var options = new CimSessionOptions { Host = _computerName };
+
+                    // // create a CimCredential object with the username and password
+                    // var credentials = new CimCredential(_username, _password);
+
+                    // // add the credentials to the CimSessionOptions object
+                    // options.AddCredential(credentials);
+
+                    // // create a CimSession with the target machine's name
+                    // var session = CimSession.Create(_computerName, options);
+                    if (session.TestConnection() == true)
+                    {
+                        Console.WriteLine($"Connection Test Was Successful. Continuing...");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Connection Test Failed!");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine(
+                        $"Failed to create session with remote host. Please check that the system is configured for WMI connections and double check that your credentials are accurate \n Additionally try adding the system to the trustedhost store for WMI with the following command: \n winrm s winrm/config/client '@{{TrustedHosts = system_name}}'"
+                    );
+                }
+
+                // output
+
+                try
+                {
+                    if (null != session)
+                    {
+                        var operatingSystemOutput = new OperatingSystemOutput(session);
+                        operatingSystemOutput.Print();
+
+                        var biosOutput = new BiosOutput(session);
+                        biosOutput.Print();
+
+                        var processorOutput = new ProcessorOutput(session);
+                        processorOutput.Print();
+
+                        var filesOutput = new FilesOutput(session);
+                        filesOutput.Print();
+                    }
+                }
+                catch (CimException ex)
+                {
+                    // handle any errors that occur when connecting to the remote computer
+                    Console.WriteLine(
+                        "An error occurred while connecting to the remote computer: {0}",
+                        ex.Message
+                    );
+                    throw;
+                }
             }
-            else
+            catch
             {
-                Console.WriteLine($"Connection Test Failed!");
+                // handle any errors that occur when connecting to the remote computer
+                Console.WriteLine("Failed to inialize WmiSupport.Connect()");
+                throw;
             }
-
-            var operatingSystemOutput = new OperatingSystemOutput(session);
-            operatingSystemOutput.Print();
-
-            var biosOutput = new BiosOutput(session);
-            biosOutput.Print();
-
-            var processorOutput = new ProcessorOutput(session);
-            processorOutput.Print();
-
-            var filesOutput = new FilesOutput(session);
-            filesOutput.Print();
         }
     }
 
@@ -88,23 +120,34 @@ namespace Ghosts.Client.Infrastructure
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Enter the computer name: ");
-            var icomputerName = Console.ReadLine();
+            try
+            {
+                Console.WriteLine("Enter the computer name: ");
+                var icomputerName = Console.ReadLine();
 
-            Console.WriteLine("Enter the domain: ");
-            var idomain = Console.ReadLine();
+                Console.WriteLine("Enter the domain: ");
+                var idomain = Console.ReadLine();
 
-            Console.WriteLine("Enter the username: ");
-            var iusername = Console.ReadLine();
+                Console.WriteLine("Enter the username: ");
+                var iusername = Console.ReadLine();
 
-            Console.WriteLine("Enter the password: ");
-            var ipassword = Console.ReadLine();
+                Console.WriteLine("Enter the password: ");
+                var ipassword = Console.ReadLine();
 
-            // create a WmiSupport object with the computer name, username, and password
-            var wmiSupport = new WmiSupport(icomputerName, idomain, iusername, ipassword);
+                // create a WmiSupport object with the computer name, username, and password
+                var wmiSupport = new WmiSupport(icomputerName, idomain, iusername, ipassword);
 
-            // connect to the target computer and print out the information
-            wmiSupport.Connect();
+                // connect to the target computer and print out the information
+                wmiSupport.Connect();
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when connecting to the remote computer
+                Console.WriteLine(
+                    "An error occurred while connecting to the remote computer: {0}",
+                    ex.Message
+                );
+            }
         }
     }
 
@@ -143,11 +186,13 @@ namespace Ghosts.Client.Infrastructure
             catch (CimException ex)
             {
                 // handle any errors that occur when querying the remote computer
-                Console.WriteLine("An error occurred while querying the remote computer: {0}", ex.Message);
+                Console.WriteLine(
+                    "An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
             }
         }
     }
-
 
     public class BiosOutput
     {
@@ -172,7 +217,10 @@ namespace Ghosts.Client.Infrastructure
                     "BIOS Manufacturer: {0}",
                     instance.CimInstanceProperties["Manufacturer"].Value
                 );
-                Console.WriteLine("BIOS Version: {0}", instance.CimInstanceProperties["Version"].Value);
+                Console.WriteLine(
+                    "BIOS Version: {0}",
+                    instance.CimInstanceProperties["Version"].Value
+                );
                 Console.WriteLine(
                     "BIOS Release Date: {0}",
                     instance.CimInstanceProperties["ReleaseDate"].Value
@@ -181,11 +229,13 @@ namespace Ghosts.Client.Infrastructure
             catch (CimException ex)
             {
                 // handle any errors that occur when querying the remote computer
-                Console.WriteLine("An error occurred while querying the remote computer: {0}", ex.Message);
+                Console.WriteLine(
+                    "An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
             }
         }
     }
-
 
     public class ProcessorOutput
     {
@@ -198,29 +248,43 @@ namespace Ghosts.Client.Infrastructure
 
         public void Print()
         {
-            // use the CimSession to create a CimInstance object representing a WMI instance
-            // in this case, we're using the Win32_Processor class to get information about the processor
-            var cimInstance = new CimInstance(@"Win32_Processor");
-            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_Processor class to get information about the processor
+                var cimInstance = new CimInstance(@"Win32_Processor");
+                var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
-            // print out the instance's properties
-            Console.WriteLine("Processor Name: {0}", instance.CimInstanceProperties["Name"].Value);
-            Console.WriteLine(
-                "Processor Manufacturer: {0}",
-                instance.CimInstanceProperties["Manufacturer"].Value
-            );
-            Console.WriteLine(
-                "Processor Speed: {0}",
-                instance.CimInstanceProperties["MaxClockSpeed"].Value
-            );
-            Console.WriteLine(
-                "Processor Number of Cores: {0}",
-                instance.CimInstanceProperties["NumberOfCores"].Value
-            );
-            Console.WriteLine(
-                "Processor Number of Logical Processors: {0}",
-                instance.CimInstanceProperties["NumberOfLogicalProcessors"].Value
-            );
+                // print out the instance's properties
+                Console.WriteLine(
+                    "Processor Name: {0}",
+                    instance.CimInstanceProperties["Name"].Value
+                );
+                Console.WriteLine(
+                    "Processor Manufacturer: {0}",
+                    instance.CimInstanceProperties["Manufacturer"].Value
+                );
+                Console.WriteLine(
+                    "Processor Speed: {0}",
+                    instance.CimInstanceProperties["MaxClockSpeed"].Value
+                );
+                Console.WriteLine(
+                    "Processor Number of Cores: {0}",
+                    instance.CimInstanceProperties["NumberOfCores"].Value
+                );
+                Console.WriteLine(
+                    "Processor Number of Logical Processors: {0}",
+                    instance.CimInstanceProperties["NumberOfLogicalProcessors"].Value
+                );
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
         }
     }
 
@@ -235,21 +299,35 @@ namespace Ghosts.Client.Infrastructure
 
         public void Print()
         {
-            // use the CimSession to create a CimInstance object representing a WMI instance
-            // in this case, we're using the Win32_Directory class to get information about a directory
-            var cimInstance = new CimInstance(@"Win32_Directory");
-            var instance = _session.GetInstance(@"root\cimv2", cimInstance);
+            try
+            {
+                // use the CimSession to create a CimInstance object representing a WMI instance
+                // in this case, we're using the Win32_Directory class to get information about a directory
+                var cimInstance = new CimInstance(@"Win32_Directory");
+                var instance = _session.GetInstance(@"root\cimv2", cimInstance);
 
-            // print out the instance's properties
-            Console.WriteLine("Directory Name: {0}", instance.CimInstanceProperties["Name"].Value);
-            Console.WriteLine(
-                "Directory AccessMask: {0}",
-                instance.CimInstanceProperties["AccessMask"].Value
-            );
-            Console.WriteLine(
-                "Directory Compressed: {0}",
-                instance.CimInstanceProperties["Compressed"].Value
-            );
+                // print out the instance's properties
+                Console.WriteLine(
+                    "Directory Name: {0}",
+                    instance.CimInstanceProperties["Name"].Value
+                );
+                Console.WriteLine(
+                    "Directory AccessMask: {0}",
+                    instance.CimInstanceProperties["AccessMask"].Value
+                );
+                Console.WriteLine(
+                    "Directory Compressed: {0}",
+                    instance.CimInstanceProperties["Compressed"].Value
+                );
+            }
+            catch (CimException ex)
+            {
+                // handle any errors that occur when querying the remote computer
+                Console.WriteLine(
+                    "An error occurred while querying the remote computer: {0}",
+                    ex.Message
+                );
+            }
         }
     }
 }

@@ -99,6 +99,8 @@ namespace Ghosts.Client.Infrastructure
                         // troubleshoot locally on system using powershell with:
                         // (Get-CimInstance -ClassName Win32_Directory -Property *).CimInstanceProperties
                         // https://powershell.one/wmi/root/cimv2/win32_directory
+
+                        session.Close;
                     }
                 }
                 catch (CimException ex)
